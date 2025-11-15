@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MindCare — Ultimate Chat (2-column)</title>
+
+<style>
+  :root{
+    --bg1:#051228;
+    --bg2:#0b1b33;
+    --muted:#b6c7ee;
+    --accent-a:#6ea0ff;
+    --accent-b:#b46cff;
+    --card-radius:16px;
+    --glass-border: rgba(255,255,255,0.06);
+  }
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:linear-gradient(120deg,var(--bg1),var(--bg2)); color:var(--muted); -webkit-font-smoothing:antialiased;}
+
+  /* animated background */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:-2;
+    background:
+      radial-gradient(800px 400px at 10% 20%, rgba(110,160,255,0.06), transparent 10%),
+      radial-gradient(600px 300px at 90% 80%, rgba(180,108,255,0.05), transparent 10%);
+    animation:floatBG 12s linear infinite;
+    filter:blur(28px);
+    transform: translateZ(0);
+  }
+  @keyframes floatBG{0%{transform:translateY(0)}50%{transform:translateY(12px)}100%{transform:translateY(0)}}
+
+  .app{
+    max-width:1200px;
+    margin:28px auto;
+    padding:20px;
+    display:grid;
+    grid-template-columns:320px 1fr;
+    gap:18px;
+  }
+
+  .card{
+    background: linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01));
+    border-radius:var(--card-radius);
+    padding:16px;
+    border:1px solid var(--glass-border);
+    box-shadow: 0 8px 40px rgba(2,6,23,0.45);
+    backdrop-filter: blur(6px) saturate(120%);
+  }
+
+  /* LEFT */
+  .left .profile { display:flex; gap:12px; align-items:center; }
+  .avatar-wrap{position:relative; width:72px; height:72px;}
+  .avatar {
+    width:72px; height:72px; border-radius:14px; font-size:34px; border:4px solid transparent;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    background:linear-gradient(90deg,var(--accent-a),var(--accent-b));
+    color:white; box-shadow:0 8px 28px rgba(110,160,255,0.12);
+    transition:transform .18s ease, box-shadow .18s;
+  }
+  .avatar:hover{transform:translateY(-4px); box-shadow:0 18px 40px rgba(110,160,255,0.18);}
+  .avatar-ring{ position:absolute; inset:-6px; border-radius:18px; pointer-events:none; background: conic-gradient(from 0deg, rgba(110,160,255,0.25), rgba(180,108,255,0.25)); filter:blur(8px); opacity:0.9; }
+
+  .left .name { font-size:16px; font-weight:700; color:white; margin-bottom:6px; }
+  .left .sub{ font-size:13px; color: #9fb2e4; }
+
+  .side-controls { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .btn { padding:8px 12px; border-radius:10px; border:0; cursor:pointer; font-weight:700; }
+  .btn.ghost{ background:transparent; color:var(--muted); border:1px solid rgba(255,255,255,0.04); }
+  .btn.primary{ background:linear-gradient(90deg,var(--accent-a),var(--accent-b)); color:white; }
+
+  .small-note{ margin-top:18px; color:#9fb2e6; font-size:13px; }
+
+  /* CENTER */
+  .center { display:flex; flex-direction:column; height:77vh; gap:12px; }
+  .chat-window { flex:1; overflow:auto; padding:18px; border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.02); }
+  .messages{ display:flex; flex-direction:column; gap:12px; min-height:40px; }
+
+  .msg{ max-width:74%; padding:12px 14px; border-radius:14px; box-shadow:0 6px 18px rgba(2,6,23,0.35); position:relative; word-wrap:break-word; }
+  .msg .time{ display:block; font-size:11px; opacity:0.7; margin-top:8px; }
+  .msg.user{ align-self:flex-end; background:linear-gradient(90deg,var(--accent-a),var(--accent-b)); color:white; border-bottom-right-radius:6px; }
+  .msg.bot{ align-self:flex-start; background:rgba(255,255,255,0.03); color:var(--muted); border-bottom-left-radius:6px; }
+
+  .typing { display:inline-flex; gap:6px; align-items:center; padding:8px 10px; border-radius:12px; background:rgba(255,255,255,0.02); color:var(--muted); }
+  .dot{ width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.6); animation:dot 1s infinite; }
+  .dot:nth-child(2){ animation-delay:0.12s }
+  .dot:nth-child(3){ animation-delay:0.24s }
+  @keyframes dot{ 0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)} }
+
+  .composer { display:flex; gap:12px; align-items:flex-end; padding:14px; border-radius:12px; background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005)); border:1px solid rgba(255,255,255,0.02); }
+  .mood-badge{ min-width:160px; padding:12px; border-radius:12px; font-weight:800; background:linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); color:var(--muted); text-align:center; }
+  textarea{ flex:1; min-height:56px; max-height:160px; resize:vertical; padding:12px; border-radius:10px; border:1px solid rgba(255,255,255,0.03); background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent); color:var(--muted); outline:none; font-size:14px; }
+  .send { padding:12px 16px; border-radius:12px; border:0; background:linear-gradient(90deg,var(--accent-a),var(--accent-b)); color:white; cursor:pointer; font-weight:800; box-shadow:0 10px 30px rgba(110,160,255,0.12); transition:transform .18s ease; }
+  .send:hover{ transform:translateY(-3px) scale(1.02); }
+
+  /* responsive */
+  @media (max-width:1000px){
+    .app{ grid-template-columns:1fr; padding:12px; }
+    .left{ order:2; }
+    .center{ order:1; }
+    .chat-window{ height:60vh; }
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <!-- LEFT -->
+    <section class="left card" aria-label="Profile & controls">
+      <div class="profile" role="region" aria-label="Profile">
+        <div class="avatar-wrap">
+          <div id="avatarRing" class="avatar-ring" aria-hidden="true"></div>
+          <button id="avatarBtn" class="avatar" title="Click to change avatar">🤖</button>
+        </div>
+        <div>
+          <div id="displayName" class="name left-name" contenteditable="true" aria-label="Your display name" role="textbox" style="font-weight:700;color:white">Mindful User</div>
+          <div class="sub left-sub">Tap name or avatar to personalize</div>
+        </div>
+      </div>
+
+      <div class="side-controls" aria-hidden="false" style="margin-top:16px;">
+        <button id="clearBtn" class="btn ghost">Clear Chat</button>
+        <button id="exportBtn" class="btn ghost">Export Chat</button>
+        <button id="themeBtn" class="btn primary" style="margin-left:auto">Toggle Theme</button>
+      </div>
+
+      <div class="small-note">Privacy: all chat stored in your browser (localStorage). Replace fallback with your backend for server replies.</div>
+    </section>
+
+    <!-- CENTER -->
+    <section class="center">
+      <div class="chat-window card" role="log" aria-live="polite" aria-atomic="false">
+        <div id="messages" class="messages"></div>
+      </div>
+
+      <div class="composer card" aria-label="Message composer">
+        <!-- Option 1 selected: display single mood text below the chat (here in composer) -->
+        <div id="moodBadge" class="mood-badge">Mood: —</div>
+        <textarea id="input" placeholder="Share what's on your mind... (Enter to send, Shift+Enter for newline)"></textarea>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button id="sendBtn" class="send" aria-label="Send message">Send ➤</button>
+          <button id="quickBtn" class="btn ghost" title="Quick sample">Quick</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+<script>
+/* ----------------- Chat logic (2-column) with 3-mood display ----------------- */
+/* Storage key */
+const STORAGE_KEY = 'mindcare_ultimate_v1';
+
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
+const quickBtn = document.getElementById('quickBtn');
+const clearBtn = document.getElementById('clearBtn');
+const exportBtn = document.getElementById('exportBtn');
+const moodBadge = document.getElementById('moodBadge');
+const avatarBtn = document.getElementById('avatarBtn');
+const displayName = document.getElementById('displayName');
+
+function playTone(f=440, t=0.06, v=0.06){
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.type='sine'; o.frequency.value = f;
+    g.gain.value = v;
+    o.connect(g); g.connect(ctx.destination);
+    o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + t);
+    setTimeout(()=>{ o.stop(); ctx.close(); }, (t+0.02)*1000);
+  }catch(e){}
+}
+
+/* ---------- Emotion detection (detailed) ---------- */
+function detectEmotionDetailed(t){
+  if(!t) return "neutral";
+  t = t.toLowerCase();
+  if(t.includes("depress")) return "depressed";
+  if(t.includes("sad")) return "sad";
+  if(t.includes("stress")) return "stress";
+  if(t.includes("angry")) return "angry";
+  if(t.includes("anxiety")||t.includes("scared")) return "anxiety";
+  if(t.includes("lonely")) return "lonely";
+
+  if(t.includes("happy")) return "happy";
+  if(t.includes("joy")) return "joy";
+  if(t.includes("excited")) return "excited";
+  if(t.includes("love")) return "love";
+
+  if(t.includes("hi")) return "hi";
+  if(t.includes("hello")) return "hello";
+  if(t.includes("okay")) return "okay";
+  if(t.includes("done")) return "done";
+
+  return "neutral";
+}
+
+/* ---------- Aggregate to 3 moods ---------- */
+function aggregateMood(detailed){
+  const NEG = ["depressed","sad","stress","angry","anxiety","lonely"];
+  const POS = ["happy","joy","excited","love"];
+  if(NEG.includes(detailed)) return "Negative";
+  if(POS.includes(detailed)) return "Positive";
+  return "Neutral";
+}
+
+/* ---------- Replies mapping (exact user-provided replies) ---------- */
+function emotionReplyExact(key){
+  const responses = {
+    sad: "I'm sorry you're sad 💙 I'm here.",
+    stress: "You're stressed 😔 Tell me more.",
+    angry: "Anger is valid 🔥 What happened?",
+    anxiety: "Anxiety feels scary 💛 What's worrying you?",
+    lonely: "You are not alone 🤍 I'm here.",
+    depressed: "I'm really sorry you're depressed 💜 You matter.",
+
+    happy: "That's beautiful 😊",
+    joy: "That’s wonderful! 🌟",
+    excited: "That’s exciting! 🎉",
+    love: "That's sweet ❤️ Tell me more!",
+
+    neutral: "I'm listening.",
+
+    hi: "hi how are you doing.",
+    hello: "hello, how's your day.",
+    okay: "that sounds great.",
+    done: "done."
+  };
+  return responses[key] || "I'm listening.";
+}
+
+/* ---------- History helpers ---------- */
+function loadHistory(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }catch(e){ return []; } }
+function saveHistory(h){ localStorage.setItem(STORAGE_KEY, JSON.stringify(h)); }
+
+/* ---------- UI helpers ---------- */
+function isoTime(){ return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}); }
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function createMsgNode(text, sender, timeStr){
+  const el = document.createElement('div');
+  el.className = 'msg ' + (sender==='user' ? 'user' : 'bot');
+  el.innerHTML = `<div>${escapeHtml(text)}</div><span class="time">${timeStr || isoTime()}</span>`;
+  return el;
+}
+
+function addMessageToUI(text, sender, timeStr){
+  const n = createMsgNode(text, sender, timeStr);
+  messagesEl.appendChild(n);
+  messagesEl.scrollTo({ top: messagesEl.scrollHeight, behavior: 'smooth' });
+}
+
+/* update mood badge (Option 1: single text in composer) */
+function setMoodBadge(agg){
+  moodBadge.textContent = "Mood: " + (agg ? agg.toUpperCase() : "—");
+}
+
+/* Typing indicator node */
+function makeTyping(){
+  const wrap = document.createElement('div');
+  wrap.className = 'msg bot';
+  wrap.innerHTML = `<div class="typing"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>`;
+  return wrap;
+}
+
+/* ---------- send flow (uses detailed detect + aggregated display & exact replies) ---------- */
+async function sendFlow(text){
+  if(!text || !text.trim()) return;
+  const trimmed = text.trim();
+
+  // Add user message
+  addMessageToUI(trimmed, 'user');
+  let hist = loadHistory();
+  hist.push({ from:'user', text: trimmed, t: Date.now() });
+  saveHistory(hist);
+  playTone(760,0.03,0.03);
+
+  // detect detailed emotion then aggregate
+  const detailed = detectEmotionDetailed(trimmed);
+  const agg = aggregateMood(detailed); // "Positive" / "Negative" / "Neutral"
+  setMoodBadge(agg);
+
+  // typing indicator
+  const typingNode = makeTyping();
+  messagesEl.appendChild(typingNode);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  // simulate delay
+  await new Promise(r => setTimeout(r, 600 + Math.random()*700));
+
+  // remove typing
+  typingNode.remove();
+
+  // get exact reply (based on detailed emotion if available)
+  const botText = emotionReplyExact(detailed);
+  addMessageToUI(botText, 'bot');
+  hist = loadHistory();
+  hist.push({ from:'bot', text: botText, t: Date.now() });
+  saveHistory(hist);
+  playTone(520,0.05,0.02);
+}
+
+/* ---------- wire UI events ---------- */
+sendBtn.addEventListener('click', ()=> sendFlow(inputEl.value));
+inputEl.addEventListener('keydown', (e)=> {
+  if(e.key==='Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendBtn.click();
+  }
+});
+quickBtn.addEventListener('click', ()=>{
+  inputEl.value = "I am feeling very stressed and overwhelmed right now.";
+  inputEl.focus();
+});
+
+/* clear & export */
+clearBtn.addEventListener('click', ()=>{
+  if(confirm('Clear chat history? This will delete local copy.')){
+    localStorage.removeItem(STORAGE_KEY);
+    messagesEl.innerHTML = '';
+    setMoodBadge(null);
+  }
+});
+exportBtn.addEventListener('click', ()=>{
+  const data = loadHistory();
+  const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'mindcare_history.json'; a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
+
+/* avatar & name */
+avatarBtn.addEventListener('click', ()=>{
+  const emoji = prompt('Enter an emoji to use as avatar (e.g. 🙂, 🤖, 🧘):', avatarBtn.textContent);
+  if(emoji) avatarBtn.textContent = emoji.trim().slice(0,2);
+});
+displayName.addEventListener('blur', ()=>{
+  displayName.textContent = displayName.textContent.trim() || 'Mindful User';
+});
+
+/* theme toggle (simple) */
+let dark=true;
+document.getElementById('themeBtn').addEventListener('click', ()=>{
+  dark = !dark;
+  if(!dark){
+    document.documentElement.style.setProperty('--bg1','#eef2ff');
+    document.documentElement.style.setProperty('--bg2','#f8fbff');
+    document.documentElement.style.setProperty('--muted','#0b1530');
+  } else {
+    document.documentElement.style.setProperty('--bg1','#051228');
+    document.documentElement.style.setProperty('--bg2','#0b1b33');
+    document.documentElement.style.setProperty('--muted','#b6c7ee');
+  }
+});
+
+/* init: render history and greet */
+(function init(){
+  const hist = loadHistory();
+  hist.forEach(m => addMessageToUI(m.text, m.from==='user' ? 'user' : 'bot'));
+  if(hist.length === 0){
+    setTimeout(()=> addMessageToUI("Hi — I'm MindfulBot. I'm here to listen. You can type freely.", 'bot'), 200);
+  } else {
+    // set mood from last user msg if present
+    const lastUser = [...hist].reverse().find(x=>x.from==='user');
+    if(lastUser){
+      const d = detectEmotionDetailed(lastUser.text);
+      setMoodBadge(aggregateMood(d));
+    } else {
+      setMoodBadge(null);
+    }
+  }
+})();
+</script>
+</body>
+</html>
